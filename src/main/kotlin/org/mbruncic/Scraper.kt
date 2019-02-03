@@ -11,12 +11,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Service
-open class Scraper(@Autowired val database: Database) {
-
-    private val weatherStations = setOf("ISEHUDDI2", "ISTOCKHO926", "IHUDDING101", "IENSKEDE2", "IBROMMAC3", "ISTOCKHO94", "INASOLNA2", "IBROMMAC4", "IJOHANNE72"
-            , "I21TRGZR3", "IUNDEFIN41", "IRASINJA3", "IZAGREB49", "ISVETANE2", "IGRADZAG3", "IGRADZAG10", "IZAGREB5", "IZAGREB48", "IGRADZAG11"
-    ,"IMEDELLN16", "IRETIRO4", "IANTVERE3"
-            )
+open class Scraper(@Autowired val database: Database, @Autowired val weatherStationsProvider: WeatherStationsProvider) {
 
     @Scheduled(fixedDelayString = "PT1M")
     open fun scrape() {
@@ -25,7 +20,7 @@ open class Scraper(@Autowired val database: Database) {
         var currentDate = startDate
         while (currentDate.isAfter(endDate)) {
             val date = currentDate.format(DateTimeFormatter.BASIC_ISO_DATE)
-            for (weatherStationId in weatherStations) {
+            for (weatherStationId in weatherStationsProvider.resolveWeatherStations()) {
                 val id = "$weatherStationId-$date"
                 if (!database.exists(id)) {
                     val url = "https://api-ak.wunderground.com/api/606f3f6977348613/history_$date/units:metric/v:2.0/q/pws:$weatherStationId.json"
